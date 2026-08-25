@@ -9,6 +9,7 @@
   - [Staff, TAs, and Multiple Teachers](Staff-TAs-and-Multiple-Teachers)
   - [Migrating from GitHub Classroom](Migrating-from-GitHub-Classroom)
   - [Course Lifecycle and End of Term](Course-Lifecycle-and-End-of-Term)
+  - [Manual Actions](Manual-Actions)
 - **Autograding**
   - [Autograding Basics](Autograding-Basics)
   - [Autograder Recipes](Autograder-Recipes)
