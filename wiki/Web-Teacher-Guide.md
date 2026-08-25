@@ -548,6 +548,13 @@ the banner at the top of the app as **Collecting scores**, which keeps
 tracking the run if you navigate away and links to the Actions run
 (**View run**).
 
+### Your own workflows
+
+Beside **Collect all**, the assignments page can offer workflows of your own —
+a grade export, an LMS sync — as buttons. They are not discovered automatically:
+you declare which ones a classroom offers, and what each of their inputs may be,
+in a file in your `classroom50` repository. See [Manual actions](Manual-Actions).
+
 ### Scores and overrides
 
 Each row's score cell has an edit button (pencil) that opens a score dialog.
