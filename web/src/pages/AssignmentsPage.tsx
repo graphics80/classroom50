@@ -189,10 +189,10 @@ export const TeacherAssignmentsView = ({
       />
     ) : null
 
-  // Custom workflows the classroom opted into. They sit beside the collect
-  // button rather than next to "New assignment": both run something, while the
-  // trailing slot stays the authoring affordance. Archived classrooms hide them
-  // with the rest of the write affordances.
+  // Custom workflows the classroom opted into. They sit in the trailing group,
+  // matching the submissions toolbar where Actions is the right-hand green
+  // menu — one place to look for "run something" across both pages. Archived
+  // classrooms hide them with the rest of the write affordances.
   const manualActionsMenu =
     !archived && manualActions.length > 0 ? (
       <ManualActionsMenu
@@ -202,13 +202,14 @@ export const TeacherAssignmentsView = ({
       />
     ) : null
 
-  // Toolbar.Leading lays its children out, but renders an empty bar for a
-  // fragment of nulls — so collapse to null when neither action is present.
-  const leadingActions =
-    collectAction || manualActionsMenu ? (
+  // Toolbar.Leading/Trailing lay their children out but render an empty bar for
+  // a fragment of nulls — so each collapses to null when it has nothing.
+  const leadingActions = collectAction
+  const trailingActions =
+    manualActionsMenu || primaryAction ? (
       <>
-        {collectAction}
         {manualActionsMenu}
+        {primaryAction}
       </>
     ) : null
 
@@ -271,7 +272,7 @@ export const TeacherAssignmentsView = ({
           onSortChange={setSort}
           actionsOnly={!hasAssignments}
           leading={leadingActions}
-          trailing={primaryAction}
+          trailing={trailingActions}
         />
       )}
       {showNoResults ? (

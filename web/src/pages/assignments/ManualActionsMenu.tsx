@@ -6,8 +6,10 @@ import { Button } from "@/components/ui"
 import type { ManualAction } from "@/domain/actions/manualActions"
 import ManualActionModal from "./ManualActionModal"
 
-// The classroom's declared manual actions, as a dropdown next to the toolbar's
-// primary action. Nothing appears here by discovery: an entry exists because
+// The classroom's declared manual actions, as a dropdown in the toolbar's
+// trailing group — same shape and weight as the submissions page's Actions
+// menu, so "run something on this classroom" looks the same on both pages.
+// Nothing appears here by discovery: an entry exists because
 // <classroom>/actions.json named the workflow and the viewer's role clears the
 // action's declared minimum.
 export function ManualActionsMenu({
@@ -27,7 +29,7 @@ export function ManualActionsMenu({
   return (
     <>
       <div className="dropdown dropdown-end">
-        <Button size="sm" tabIndex={0}>
+        <Button variant="primary" size="sm" tabIndex={0}>
           {t("submissions.menu.actions")}
           <ChevronDownIcon aria-hidden="true" className="size-4" />
         </Button>
