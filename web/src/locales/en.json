@@ -1118,6 +1118,15 @@
       "confirmBody": "This starts one workflow run that collects scores for every assignment in this classroom. The run takes longer for a large classroom and uses more GitHub Actions minutes than collecting a single assignment.",
       "confirmAction": "Collect all"
     },
+    "manualActions": {
+      "run": "Run",
+      "loadingSpec": "Reading the workflow's inputs…",
+      "notDispatchable": "{{workflow}} can't be run from here — the workflow is missing from this organization's classroom50 repository, or it has no manual trigger.",
+      "needsConfiguration": "This action can't be run as declared: the workflow requires an input that actions.json neither supplies nor shows. Update the declaration in the config repo.",
+      "unknownInput": "This action can't be run as declared: actions.json sets a policy for an input {{workflow}} doesn't have. Check the input names against the workflow.",
+      "lockedWithoutValue": "This action can't be run as declared: an input is locked without a value. Give it one, or change its policy.",
+      "dispatchFailed": "Could not start {{label}}: {{reason}} You can check or trigger it manually on GitHub."
+    },
     "discover": {
       "accept": "Accept assignment",
       "notAccepted": "Not accepted",

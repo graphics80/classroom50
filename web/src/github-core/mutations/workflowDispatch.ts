@@ -92,6 +92,54 @@ export async function triggerScoreCollection(
 }
 
 /**
+ * Dispatches any workflow in the classroom50 config repo by file name — the
+ * generic form behind a declared manual action (see domain/actions).
+ *
+ * `inputs` is sent verbatim: the caller has already applied the declaration's
+ * policy, which is where a locked value (a classroom scope that must not travel
+ * empty) is fixed. Nothing here re-derives or widens it.
+ *
+ * Returns `sinceRunId` like the two named dispatchers, so the same tracker
+ * binds the run this POST created.
+ */
+export async function triggerManualWorkflow(
+  client: GitHubClient,
+  org: string | undefined,
+  workflow: string,
+  inputs: Record<string, string>,
+): Promise<{ sinceRunId: number | null }> {
+  if (!org) throw new Error("org must be specified to dispatch a workflow")
+  if (!workflow) throw new Error("workflow file name must be specified")
+
+  const repo = await getRepo(client, org, CONFIG_REPO)
+  if (!repo) {
+    throw new Error(
+      `${org}/${CONFIG_REPO} not found; run setup for this org first`,
+    )
+  }
+  const ref = repo.default_branch || DEFAULT_BRANCH
+  const file = encodeURIComponent(workflow)
+
+  const baseline = await client.request<{ workflow_runs: { id: number }[] }>(
+    `/repos/${org}/${CONFIG_REPO}/actions/workflows/${file}/runs?event=workflow_dispatch&per_page=1`,
+  )
+  const sinceRunId = baseline.workflow_runs?.[0]?.id ?? null
+
+  await client.request(
+    `/repos/${org}/${CONFIG_REPO}/actions/workflows/${file}/dispatches`,
+    { method: "POST", body: { ref, inputs } },
+  )
+
+  logWorkflows.info("dispatched manual workflow", {
+    org,
+    workflow,
+    inputs: Object.keys(inputs),
+    sinceRunId,
+  })
+  return { sinceRunId }
+}
+
+/**
  * Dispatches the classroom50 repo's `regrade.yaml` workflow
  * to re-run the autograder for an assignment — the whole assignment, or
  * a single student when `owner` is supplied. Each targeted repo re-grades its

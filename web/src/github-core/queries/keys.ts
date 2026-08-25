@@ -125,6 +125,22 @@ export const githubKeys = {
   lastCollectScoresRun: (owner: string) =>
     [...githubKeys.all, "last-collect-scores-run", owner] as const,
 
+  // A declared manual action's tracked run.
+  // Scoped by workflow + baseline so two declared actions dispatched close
+  // together track their own runs.
+  manualActionRun: (
+    owner: string,
+    workflow: string,
+    sinceRunId: number | null,
+  ) =>
+    [
+      ...githubKeys.all,
+      "manual-action-run",
+      owner,
+      workflow,
+      sinceRunId ?? "none",
+    ] as const,
+
   // Scoped by classroom + assignment (+ optional repo owner) so a regrade of
   // one assignment doesn't surface as in-progress on another assignment's
   // page; sinceRunId binds the poll to our specific dispatch.

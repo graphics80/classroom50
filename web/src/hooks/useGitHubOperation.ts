@@ -43,7 +43,11 @@ const runStartedMs = (run: GitHubWorkflowRun | null | undefined) => {
   return Number.isNaN(parsed) ? null : parsed
 }
 
-export type GitHubOperationConfig = {
+// `TVars` is what the trigger passes through to the dispatch call. It defaults
+// to void — the built-in dispatchers close over their whole scope — and is a
+// parameter for the declared manual actions, whose inputs are typed by the
+// teacher in a form and so can't be baked into the config.
+export type GitHubOperationConfig<TVars = void> = {
   // Null disables tracking (no persistence/polling, phase stays "idle").
   storageKey: string | null
   // Query-key builder keyed by the dispatch baseline, scoping each dispatch's cache.
@@ -51,7 +55,7 @@ export type GitHubOperationConfig = {
   // Re-derive tracking from storage when this changes (org / regrade target).
   resetKey: string
   // Dispatches the workflow, returning the pre-dispatch baseline.
-  dispatch: () => Promise<{ sinceRunId: number | null }>
+  dispatch: (vars: TVars) => Promise<{ sinceRunId: number | null }>
   // Finds the run our dispatch produced (oldest run past `sinceRunId`).
   findRun: (
     sinceRunId: number | null,
@@ -120,7 +124,9 @@ const saveDispatch = (
  * re-attaches; `phase` latches at completed/failed/timeout until the next
  * dispatch or a `resetKey` change. Callers supply the workflow specifics.
  */
-export function useGitHubOperation(config: GitHubOperationConfig) {
+export function useGitHubOperation<TVars = void>(
+  config: GitHubOperationConfig<TVars>,
+) {
   const timeoutMs = config.timeoutMs ?? DEFAULTS.timeoutMs
   const queueTimeoutMs = config.queueTimeoutMs ?? timeoutMs
   const maxWaitMs = queueTimeoutMs + timeoutMs
@@ -144,7 +150,7 @@ export function useGitHubOperation(config: GitHubOperationConfig) {
   }
 
   const mutation = useMutation({
-    mutationFn: () => config.dispatch(),
+    mutationFn: (vars: TVars) => config.dispatch(vars),
     onSuccess: (result) => {
       setTimedOut(false)
       const state: DispatchState = {
@@ -237,7 +243,7 @@ export function useGitHubOperation(config: GitHubOperationConfig) {
   else if (dispatch) phase = "running"
 
   return {
-    trigger: () => mutation.mutate(),
+    trigger: (vars: TVars) => mutation.mutate(vars),
     phase,
     failure,
     run,
