@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest"
 import { GitHubAPIError, type GitHubRateLimit } from "@/github-core/errors"
 import {
   CollectInputsUnsupportedError,
+  triggerManualWorkflow,
   triggerScoreCollection,
 } from "./workflowDispatch"
 import type { GitHubClient } from "../client"
@@ -137,5 +138,42 @@ describe("triggerScoreCollection", () => {
         assignment: "hello",
       }),
     ).rejects.toBeInstanceOf(GitHubAPIError)
+  })
+})
+
+describe("triggerManualWorkflow", () => {
+  it("posts the given inputs verbatim to the named workflow", async () => {
+    const { client, request } = makeClient(() => ({}))
+
+    const result = await triggerManualWorkflow(
+      client,
+      "acme",
+      "moodle-sync.yaml",
+      {
+        classroom: "cs50",
+        dry_run: "true",
+      },
+    )
+
+    expect(result.sinceRunId).toBe(41)
+    const dispatchCall = request.mock.calls.find(([url]) =>
+      (url as string).endsWith("/dispatches"),
+    )
+    expect(dispatchCall?.[0]).toContain(
+      "/actions/workflows/moodle-sync.yaml/dispatches",
+    )
+    // Verbatim: the declaration's policy was applied by the caller, and a
+    // locked value must not be re-derived or widened here.
+    expect(dispatchCall?.[1]).toMatchObject({
+      method: "POST",
+      body: { ref: "main", inputs: { classroom: "cs50", dry_run: "true" } },
+    })
+  })
+
+  it("refuses to dispatch without a workflow name", async () => {
+    const { client } = makeClient(() => ({}))
+    await expect(triggerManualWorkflow(client, "acme", "", {})).rejects.toThrow(
+      /workflow file name/,
+    )
   })
 })

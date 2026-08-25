@@ -48,6 +48,12 @@ vi.mock("@/hooks/useEmptyRosterWarning", () => ({
   default: () => ({ show: false, hasRosterRows: false }),
 }))
 const orgRepoCreationWarning = vi.fn()
+// The declared manual actions come from the config repo; this suite renders the
+// page without a GitHub client, so the hook is stubbed to "none declared".
+vi.mock("@/hooks/useManualActions", () => ({
+  default: () => [],
+}))
+
 vi.mock("@/hooks/useOrgRepoCreationWarning", () => ({
   default: () => orgRepoCreationWarning(),
 }))

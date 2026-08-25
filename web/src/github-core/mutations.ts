@@ -105,6 +105,7 @@ export {
 export {
   triggerScoreCollection,
   triggerRegrade,
+  triggerManualWorkflow,
   rerunFailedRun,
   CollectInputsUnsupportedError,
 } from "./mutations/workflowDispatch"

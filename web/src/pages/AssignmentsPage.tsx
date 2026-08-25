@@ -6,6 +6,7 @@ import { Trans, useTranslation } from "react-i18next"
 import AssignmentsTable from "@/pages/assignments/AssignmentsTable"
 import AssignmentsToolbar from "@/pages/assignments/AssignmentsToolbar"
 import { ClassroomCollectButton } from "@/pages/assignments/ClassroomCollectButton"
+import { ManualActionsMenu } from "@/pages/assignments/ManualActionsMenu"
 import {
   DEFAULT_FILTERS,
   DEFAULT_SORT,
@@ -32,6 +33,7 @@ import useGetClassroomAssignments from "@/hooks/useGetClassAssignments"
 import useStudentCount from "@/hooks/useStudentCount"
 import useGetClassroom from "@/hooks/useGetClassroom"
 import useEmptyRosterWarning from "@/hooks/useEmptyRosterWarning"
+import useManualActions from "@/hooks/useManualActions"
 import { useClassroomRoleContext } from "@/context/classroomRole/ClassroomRoleProvider"
 import { roleLabelKey, can } from "@/authz"
 import { isClassroomArchived } from "@/types/classroom"
@@ -135,6 +137,9 @@ export const TeacherAssignmentsView = ({
   // list read-only. GitHub is the real enforcer (config-repo write), this is UX.
   const canAuthor = can("authorAssignments", { classroomRole: myRole })
   const emptyRoster = useEmptyRosterWarning(org, classroom)
+  // Declared manual actions (<classroom>/actions.json), already filtered to the
+  // ones this viewer's role may run.
+  const manualActions = useManualActions(org, classroom, myRole)
 
   const [query, setQuery] = useState("")
   const [filters, setFilters] = useState<AssignmentFilters>(DEFAULT_FILTERS)
@@ -182,6 +187,29 @@ export const TeacherAssignmentsView = ({
         classroom={classroom}
         emptyRoster={emptyRoster.show}
       />
+    ) : null
+
+  // Custom workflows the classroom opted into. They sit beside the collect
+  // button rather than next to "New assignment": both run something, while the
+  // trailing slot stays the authoring affordance. Archived classrooms hide them
+  // with the rest of the write affordances.
+  const manualActionsMenu =
+    !archived && manualActions.length > 0 ? (
+      <ManualActionsMenu
+        org={org}
+        classroom={classroom}
+        actions={manualActions}
+      />
+    ) : null
+
+  // Toolbar.Leading lays its children out, but renders an empty bar for a
+  // fragment of nulls — so collapse to null when neither action is present.
+  const leadingActions =
+    collectAction || manualActionsMenu ? (
+      <>
+        {collectAction}
+        {manualActionsMenu}
+      </>
     ) : null
 
   return (
@@ -242,7 +270,7 @@ export const TeacherAssignmentsView = ({
           sort={sort}
           onSortChange={setSort}
           actionsOnly={!hasAssignments}
-          leading={collectAction}
+          leading={leadingActions}
           trailing={primaryAction}
         />
       )}

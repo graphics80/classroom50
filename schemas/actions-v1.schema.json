@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/foundation50/classroom50/main/schemas/actions-v1.schema.json",
+  "title": "classroom50/actions/v1",
+  "description": "Machine-readable schema for <classroom>/actions.json, the classroom's opt-in list of manual (workflow_dispatch) actions surfaced in the web app. Hand-authored; no CLI reads it, and the web app only reads it. The app can discover every dispatchable workflow in <org>/classroom50, but a workflow appears in the UI only because it is declared here — default deny, since a custom workflow can act outside the classroom (push grades to an external system, mail students). The declaration carries policy only: input types (type/required/choice options) stay in the workflow YAML, so the two cannot drift.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema",
+    "actions"
+  ],
+  "properties": {
+    "schema": {
+      "const": "classroom50/actions/v1"
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "workflow",
+          "label"
+        ],
+        "properties": {
+          "workflow": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Workflow file name inside .github/workflows of the config repo, e.g. \"moodle-sync.yaml\". One entry per workflow; a repeated workflow keeps its first declaration."
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Menu label. Also the label the app-wide Actions banner shows for the run: the banner's built-in workflow labels cover only the four scaffolded workflows."
+          },
+          "description": {
+            "type": "string",
+            "description": "Shown in the run dialog. Say what the action does outside GitHub, if anything."
+          },
+          "min_role": {
+            "enum": [
+              "teacher",
+              "hta",
+              "ta"
+            ],
+            "default": "teacher",
+            "description": "Lowest classroom role offered the action. UX only — GitHub enforces the real boundary through Actions write on the config repo — but a workflow that writes to an external system should say so here rather than leave it inferred."
+          },
+          "inputs": {
+            "type": "object",
+            "description": "Per-input policy, keyed by the input name as the workflow declares it. An input not named here is treated as \"hidden\": silence must not expose a field, least of all one whose empty value widens a run's scope (a blank `classroom` reads as \"every classroom\" to more than one workflow). A REQUIRED input that ends up hidden makes the whole action unusable — the app reports it as needing configuration instead of dispatching into a 422.",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "policy"
+              ],
+              "properties": {
+                "policy": {
+                  "enum": [
+                    "locked",
+                    "shown",
+                    "hidden"
+                  ],
+                  "description": "locked: fixed value, not editable — the only policy that guarantees a value the client cannot widen. shown: an editable field, starting at `value` or the workflow's own default. hidden: not shown and not sent, so the workflow's default applies."
+                },
+                "value": {
+                  "type": "string",
+                  "description": "The fixed value for `locked`, or the starting value for `shown`. Supports the placeholder {{classroom}}, substituted with the classroom the action was launched from."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
